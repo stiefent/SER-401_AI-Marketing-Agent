@@ -2,29 +2,22 @@
 "use client";
 
 import { useState } from "react";
-
-type Video = {
-  id: string;
-  title: string;
-  channel: string;
-  thumbnail: string;
-  views: string;
-  likes: string;
-  comments: string;
-};
+import VideoCard, { type Video } from "./components/VideoCard";
 
 export default function Home() {
   const [search, setSearch] = useState("");
-  const [video, setVideo] = useState<Video | null>(null);
+  const [videos, setVideos] = useState<Video[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [hasSearched, setHasSearched] = useState(false);
 
   async function searchYouTube() {
     if (!search.trim()) return;
 
     setLoading(true);
-    setVideo(null);
     setError("");
+    setVideos([]);
+    setHasSearched(true);
 
     try {
       const response = await fetch(
@@ -37,24 +30,23 @@ export default function Home() {
         throw new Error(data.error || "Search failed");
       }
 
-      setVideo(data);
+      setVideos(data.videos);
+
     } catch (error) {
       setError(
-        error instanceof Error ? error.message : "Search failed"
+        error instanceof Error
+          ? error.message
+          : "Search failed"
       );
     } finally {
       setLoading(false);
     }
   }
 
-  const formatNumber = (value: string) =>
-    Number(value).toLocaleString();
-
   return (
     <main className="min-h-screen bg-gray-100 px-6 py-12">
-      <div className="mx-auto max-w-5xl">
+      <div className="mx-auto max-w-6xl">
 
-        {/* Page Header */}
         <header className="mb-10 text-center">
           <h1 className="text-4xl font-bold text-gray-900">
             YouTube Video Research
@@ -65,7 +57,7 @@ export default function Home() {
           </p>
         </header>
 
-        {/* Search Bar */}
+        {/* Search Form */}
         <form
           onSubmit={(e) => {
             e.preventDefault();
@@ -75,7 +67,7 @@ export default function Home() {
         >
           <input
             type="text"
-            placeholder="Search for a YouTube video..."
+            placeholder="Search YouTube videos..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="w-full rounded-xl border-2 border-gray-300 bg-white px-5 py-3 text-gray-900 shadow-sm outline-none transition focus:border-red-500 focus:ring-2 focus:ring-red-200"
@@ -84,88 +76,52 @@ export default function Home() {
           <button
             type="submit"
             disabled={loading}
-            className="rounded-xl bg-red-600 px-8 py-3 font-semibold text-white shadow-md transition hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-50"
+            className="rounded-xl bg-red-600 px-8 py-3 font-semibold text-white shadow-md transition hover:bg-red-700 disabled:opacity-50"
           >
             {loading ? "Searching..." : "Search"}
           </button>
         </form>
 
-        {/* Error Message */}
         {error && (
-          <p className="mb-6 text-center font-medium text-red-600">
+          <p className="mb-6 text-center text-red-600">
             {error}
           </p>
         )}
 
-        {/* Loading Message */}
         {loading && (
           <p className="text-center text-gray-500">
             Searching YouTube...
           </p>
         )}
 
-        {/* Video Results */}
-        {video && (
-          <section className="mx-auto max-w-2xl overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-lg">
-
-            <a
-              href={`https://www.youtube.com/watch?v=${video.id}`}
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              <img
-                src={video.thumbnail}
-                alt={video.title}
-                className="aspect-video w-full object-cover"
-              />
-            </a>
-
-            <div className="p-6">
-              <h2 className="mb-2 text-2xl font-bold text-gray-900">
-                {video.title}
+        {/* Video Grid */}
+        {!loading && videos.length > 0 && (
+          <section>
+            <div className="mb-6 flex items-center justify-between">
+              <h2 className="text-2xl font-bold text-gray-900">
+                Search Results
               </h2>
 
-              <p className="mb-6 text-gray-500">
-                {video.channel}
+              <p className="text-gray-500">
+                {videos.length} videos found
               </p>
+            </div>
 
-              {/* Statistics */}
-              <div className="grid grid-cols-3 gap-4 border-t border-gray-200 pt-6 text-center">
-                <div>
-                  <p className="text-xl font-bold text-gray-900">
-                    {formatNumber(video.views)}
-                  </p>
-                  <p className="text-sm text-gray-500">Views</p>
-                </div>
-
-                <div>
-                  <p className="text-xl font-bold text-gray-900">
-                    {formatNumber(video.likes)}
-                  </p>
-                  <p className="text-sm text-gray-500">Likes</p>
-                </div>
-
-                <div>
-                  <p className="text-xl font-bold text-gray-900">
-                    {formatNumber(video.comments)}
-                  </p>
-                  <p className="text-sm text-gray-500">Comments</p>
-                </div>
-              </div>
-
-              <a
-                href={`https://www.youtube.com/watch?v=${video.id}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="mt-6 block rounded-xl bg-red-600 px-5 py-3 text-center font-semibold text-white transition hover:bg-red-700"
-              >
-                Watch on YouTube
-              </a>
+            <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+              {videos.map((video) => (
+                <VideoCard key={video.id} video={video} />
+              ))}
             </div>
           </section>
         )}
 
-        {!video && !loading && !error && (
+        {!loading && !error && hasSearched && videos.length === 0 && (
+          <p className="text-center text-gray-500">
+            No videos found.
+          </p>
+        )}
+
+        {!hasSearched && (
           <p className="text-center text-gray-500">
             Enter a search term to get started.
           </p>
