@@ -10,6 +10,7 @@ export default function Home() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [hasSearched, setHasSearched] = useState(false);
+  const [sortBy, setSortBy] = useState("default");
 
   async function searchYouTube() {
     if (!search.trim()) return;
@@ -41,7 +42,58 @@ export default function Home() {
     } finally {
       setLoading(false);
     }
+
   }
+
+      
+  const sortedVideos = [...videos].sort((a, b) => {
+    const viewsA = Number(a.views ?? 0);
+    const viewsB = Number(b.views ?? 0);
+
+    const likesA = Number(a.likes ?? 0);
+    const likesB = Number(b.likes ?? 0);
+
+    const commentsA = Number(a.comments ?? 0);
+    const commentsB = Number(b.comments ?? 0);
+
+    switch (sortBy) {
+      case "views-desc":
+        return viewsB - viewsA;
+
+      case "views-asc":
+        return viewsA - viewsB;
+
+      case "likes-desc":
+        return likesB - likesA;
+
+      case "likes-asc":
+        return likesA - likesB;
+
+      case "comments-desc":
+        return commentsB - commentsA;
+
+      case "comments-asc":
+        return commentsA - commentsB;
+
+      case "engagement":
+        //Engagement Rate = (Like + Comments) / Views * 100
+        //I literally just pulled this off a google search
+        const engagementA =
+          viewsA > 0
+            ? ((likesA + commentsA) / viewsA) * 100
+            : 0;
+
+        const engagementB =
+          viewsB > 0
+            ? ((likesB + commentsB) / viewsB) * 100
+            : 0;
+
+        return engagementB - engagementA;
+
+      default:
+        return 0;
+    }
+  });
 
   return (
     <main className="min-h-screen bg-gray-100 px-6 py-12">
@@ -97,18 +149,47 @@ export default function Home() {
         {/* Video Grid */}
         {!loading && videos.length > 0 && (
           <section>
-            <div className="mb-6 flex items-center justify-between">
-              <h2 className="text-2xl font-bold text-gray-900">
-                Search Results
-              </h2>
+            <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
+              <div>
+                <h2 className="text-2xl font-bold text-gray-900">
+                  Search Results
+                </h2>
 
-              <p className="text-gray-500">
-                {videos.length} videos found
-              </p>
+                <p className="text-sm text-gray-500">
+                  {videos.length} videos found
+                </p>
+              </div>
+
+              <div className="flex items-center gap-3">
+                <label
+                  htmlFor="sort"
+                  className="font-medium text-gray-700"
+                >
+                  Sort By:
+                </label>
+
+                <select
+                  id="sort"
+                  value={sortBy}
+                  onChange={(e) => setSortBy(e.target.value)}
+                  className="rounded-lg border-2 border-gray-300 bg-white px-4 py-2 text-gray-900 shadow-sm outline-none focus:border-red-500"
+                >
+                  <option value="default">Search Order</option>
+                  <option value="views-desc">Most Views</option>
+                  <option value="views-asc">Least Views</option>
+                  <option value="likes-desc">Most Likes</option>
+                  <option value="likes-asc">Least Likes</option>
+                  <option value="comments-desc">Most Comments</option>
+                  <option value="comments-asc">Least Comments</option>
+                  <option value="engagement">Highest Engagement</option>
+                </select>
+              </div>
+
             </div>
 
+
             <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-              {videos.map((video) => (
+              {sortedVideos.map((video) => (
                 <VideoCard key={video.id} video={video} />
               ))}
             </div>
