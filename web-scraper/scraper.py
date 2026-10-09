@@ -9,11 +9,20 @@ def scrape_website(url):
 
         input("Press enter once logged in...")
         hashtag = input("Enter a hashtag: ")
+        amount = int(input("Enter amount of Reels: "))
 
         page.get_by_label("Search").click()
         page.get_by_label("Search input").fill(hashtag)
         page.get_by_label("Keyword").click()
-        page.locator('a[href*="/p/"]').first.click()
+        for i in range(amount):
+            page.evaluate("window.scrollTo(0, document.body.scrollHeight)")
+            page.locator('a[href*="/p/"]').nth(i).click()
+            page.get_by_label("More Options").click()
+            page.get_by_role("button", name="Go to Post").click()
+            #TODO: Insert data collection Code
+            page.go_back()
+
+
 
         browser.close()
 
