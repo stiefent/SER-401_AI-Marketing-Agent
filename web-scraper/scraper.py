@@ -8,7 +8,13 @@ def scrape_website(url):
         page.goto(url)
 
         input("Press enter once logged in...")
-        
+        hashtag = input("Enter a hashtag: ")
+
+        page.get_by_label("Search").click()
+        page.get_by_label("Search input").fill(hashtag)
+        page.get_by_label("Keyword").click()
+        page.locator('a[href*="/p/"]').first.click()
+
         browser.close()
 
 
