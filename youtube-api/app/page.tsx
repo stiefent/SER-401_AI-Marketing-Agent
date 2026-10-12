@@ -2,7 +2,8 @@
 "use client";
 
 import { useState } from "react";
-import VideoCard, { type Video } from "./components/VideoCard";
+import VideoCard from "./components/VideoCard";
+import type { Video } from "@/types/video";
 
 export default function Home() {
   const [search, setSearch] = useState("");
