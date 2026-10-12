@@ -67,10 +67,10 @@ async function formatVideoData(id: string) {
         id: video.id,
         title: video.snippet.title,
         channel: video.snippet.channelTitle,
-        thumbnail: video.snippet.thumbnails.high.url,
-        views: video.statistics.viewCount,
-        likes: video.statistics.likeCount,
-        comments: video.statistics.commentCount
+        thumbnail: video.snippet.thumbnails.high?.url ?? "",
+        views: video.statistics?.viewCount ?? null,
+        likes: video.statistics?.likeCount ?? null,
+        comments: video.statistics?.commentCount ?? null
     };
 
         return videoFormatted;
