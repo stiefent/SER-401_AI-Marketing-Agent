@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import type { Video, YouTubeResponse } from "@/types/video";
+import { saveVideo } from "@/lib/saveVideo";
 
 const apiKey = process.env.YOUTUBE_API_KEY;
 
@@ -37,6 +38,11 @@ export async function GET(request: NextRequest) {
             const videoId = item.id.videoId;
             const currentVideo = await formatVideoData(videoId);
             allVideos.videos.push(currentVideo);
+
+
+            //I commented this out so it does not constantly save videos during testing.
+            //Uncomment to save everytime there is a search request.
+            //await saveVideo(currentVideo);
         }
 
         return NextResponse.json(allVideos);
