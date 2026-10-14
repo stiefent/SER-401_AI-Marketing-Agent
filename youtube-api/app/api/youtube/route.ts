@@ -8,7 +8,30 @@ export async function GET(request: NextRequest) {
     const searchParams = request.nextUrl.searchParams;
     const query = searchParams.get("q");
     const amountRequested = 50; //This can be changed later or changed dynamically later with the user request if needed.
+    const channelId = searchParams.get("channelId");
 
+    if (channelId) {
+        try {
+            const result = await getCreator(channelId, amountRequested);
+            return NextResponse.json(result);
+        } catch (error) {
+            console.error(error);
+
+            return NextResponse.json(
+                { error: "Failed to fetch creator videos" },
+                { status: 500 }
+            );
+        }
+    }
+
+
+    if (!query) {
+        return NextResponse.json(
+            { error: "Search query required"},
+            { status: 400 }
+        );
+    }
+    
     if (!query) {
         return NextResponse.json(
             { error: "Search query required"},
@@ -56,6 +79,57 @@ export async function GET(request: NextRequest) {
             { status: 500 }
         );
     }
+}
+
+async function getCreator(
+    channelId: string,
+    amountRequested: number = 50
+): Promise<YouTubeResponse> {
+    if (!apiKey) {
+        throw new Error("YOUTUBE_API_KEY is not configured");
+    }
+
+    // Get the channel's uploads playlist.
+    const channelResponse = await fetch(
+        `https://www.googleapis.com/youtube/v3/channels?part=contentDetails&id=${encodeURIComponent(channelId)}&key=${apiKey}`
+    );
+
+    if (!channelResponse.ok) {
+        throw new Error("Failed to fetch YouTube channel");
+    }
+
+    const channelData = await channelResponse.json();
+    const channel = channelData.items?.[0];
+
+    if (!channel) {
+        throw new Error("YouTube channel not found");
+    }
+
+    const uploadsPlaylistId =
+        channel.contentDetails.relatedPlaylists.uploads;
+
+    // Get the channel's uploaded videos.
+    const playlistResponse = await fetch(
+        `https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&playlistId=${encodeURIComponent(uploadsPlaylistId)}&maxResults=${Math.min(Math.max(amountRequested, 1), 50)}&key=${apiKey}`
+    );
+
+    if (!playlistResponse.ok) {
+        throw new Error("Failed to fetch creator videos");
+    }
+
+    const playlistData = await playlistResponse.json();
+    const allVideos: YouTubeResponse = { videos: [] };
+
+    for (const item of playlistData.items ?? []) {
+        const videoId = item.snippet?.resourceId?.videoId;
+
+        if (videoId) {
+            const video = await formatVideoData(videoId);
+            allVideos.videos.push(video);
+        }
+    }
+
+    return allVideos;
 }
 
 async function formatVideoData(id: string) {
