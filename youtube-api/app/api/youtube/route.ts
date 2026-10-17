@@ -89,9 +89,9 @@ export async function GET(request: NextRequest) {
     const params = request.nextUrl.searchParams;
     const query = params.get("q")?.trim();
     const creator = params.get("creator")?.trim();
-    const requestedChannelId = params.get("channelId")?.trim();
+    const channelIdParam = params.get("channelId")?.trim();
 
-    if (!query) {
+    if (!query && !creator && !channelIdParam) {
         return errorResponse(
             "Search query required. Provide q=your-search.",
             400
@@ -185,11 +185,14 @@ export async function GET(request: NextRequest) {
 
         const apiParams = new URLSearchParams({
             part: "snippet",
-            q: query,
             type: "video",
             maxResults: String(parsedMaxResults),
             key: API_KEY,
         });
+
+        if (query) {
+            apiParams.set("q", query);
+        }
 
         for (const [filter, allowedValues] of Object.entries(allowedFilters)) {
             const value = params.get(filter);
@@ -390,3 +393,4 @@ async function getVideosByIds(ids: string[]): Promise<Video[]> {
         .map((id) => videosById.get(id))
         .filter((video): video is Video => video !== undefined);
 }
+
