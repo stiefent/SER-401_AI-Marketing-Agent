@@ -12,44 +12,57 @@ def scrape_website(url):
         page = browser.new_page()
         page.goto(url)
 
-        input("Press enter once logged in...")
-        choice = input("Finding Reels or a creator? ")
-        choice = choice.lower()
+        ## FOR YOUTUBE ONLY ##
+        search_input = input("What would you like to search? ")
+        page.get_by_role("combobox", name="Search").click()
+        page.get_by_role("combobox", name="Search").fill(search_input)
+        page.get_by_role("combobox", name="Search").press('Enter')
+        first_video = page.locator("ytd-video-renderer #video-title").first
+        first_video.wait_for(state="visible")
+        first_video.click()
 
-        page.get_by_label("Search").click()
+        search_data.append({"id": search_id, "media": "YouTube", "search_type": "content", "data": "Example"})
+        input("Press enter to continue")
+
+        ## FOR INSTAGRAM ONLY ##
+        # input("Press enter once logged in...")
+        # choice = input("Finding Reels or a creator? ")
+        # choice = choice.lower()
+
+        # page.get_by_label("Search").click()
         
-        if choice == "reels":
-            hashtag = input("Enter a hashtag: ")
-            amount = int(input("Enter amount of Reels: "))
-            page.get_by_label("Search input").fill(hashtag)
-            page.get_by_label("Keyword").click()
-            for i in range(amount):
-                page.evaluate("window.scrollTo(0, document.body.scrollHeight)")
-                page.locator('a[href*="/p/"]').nth(i).click()
-                page.get_by_label("More Options").click()
-                page.get_by_role("button", name="Go to Post").click()
+        # if choice == "reels":
+        #     hashtag = input("Enter a hashtag: ")
+        #     amount = int(input("Enter amount of Reels: "))
+        #     page.get_by_label("Search input").fill(hashtag)
+        #     page.get_by_label("Keyword").click()
+        #     for i in range(amount):
+        #         page.evaluate("window.scrollTo(0, document.body.scrollHeight)")
+        #         page.locator('a[href*="/p/"]').nth(i).click()
+        #         page.get_by_label("More Options").click()
+        #         page.get_by_role("button", name="Go to Post").click()
                 
-                #TODO: collect reel data for json input
-                #reel_data= {}
-                search_data.append({"id": search_id, "search_type": "reel", "data": "Example"}) #replace example with reel_data
-                search_id += 1
-                page.go_back()
+        #         #TODO: collect reel data for json input
+        #         #reel_data= {}
+        #         search_data.append({"id": search_id, "media": "Instagram", "search_type": "reel", "data": "Example"}) #replace example with reel_data
+        #         search_id += 1
+        #         page.go_back()
 
-        elif choice == "creator" or choice == "a creator":
-            creator = input("Enter a creator: ")
-            page.get_by_label("Search input").fill(creator)
-            container = page.locator("main")
-            links = container.locator("a")
-            links.nth(1).click()
-            page.pause()
+        # elif choice == "creator" or choice == "a creator":
+        #     creator = input("Enter a creator: ")
+        #     page.get_by_label("Search input").fill(creator)
+        #     container = page.locator("main")
+        #     links = container.locator("a")
+        #     links.nth(1).click()
+        #     page.pause()
             
-            #TODO: collect creator data for json input
-            #creator_data = {}
-            search_data.append({"id": search_id, "search_type": "creator", "data": "Example"}) #replace example with creator_data
-            search_id += 1
+        #     #TODO: collect creator data for json input
+        #     #creator_data = {}
+        #     search_data.append({"id": search_id, "media": "Instagram", "search_type": "creator", "data": "Example"}) #replace example with creator_data
+        #     search_id += 1
 
-        else:
-            print("Sorry, I didn't understand that.")
+        # else:
+        #     print("Sorry, I didn't understand that.")
 
         # Store collected data in search_data.json file
         with open(filename, "w", encoding="utf-8") as f:
@@ -72,4 +85,4 @@ else:
 
 
 if __name__ == "__main__":
-    scrape_website("https://www.instagram.com")
+    scrape_website("https://www.youtube.com") # OR "https://instagram.com"
