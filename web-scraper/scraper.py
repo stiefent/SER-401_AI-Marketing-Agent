@@ -14,12 +14,16 @@ def scrape_website(url):
 
         ## YOUTUBE
         if url == "https://www.youtube.com":
+            search_input = input("What would you like to search? ")
+            page.get_by_role("combobox", name="Search").click()
+            page.get_by_role("combobox", name="Search").fill(search_input)
+            page.get_by_role("combobox", name="Search").press('Enter')
+
             choice = input("Searching Videos or Shorts? ")
+            
+            ## YOUTUBE VIDEO
             if choice.lower() == "videos":
-                search_input = input("What would you like to search? ")
-                page.get_by_role("combobox", name="Search").click()
-                page.get_by_role("combobox", name="Search").fill(search_input)
-                page.get_by_role("combobox", name="Search").press('Enter')
+                media_type = "video"
                 first_video = page.locator("ytd-video-renderer #video-title").first
                 first_video.wait_for(state="visible")
                 first_video.click()
@@ -46,16 +50,45 @@ def scrape_website(url):
                     "likes": likes,
                     "upload_date": upload_date,
                     "description": desc
-                }
-                search_data.append({
-                    "id": search_id, 
-                    "media": "YouTube", 
-                    "search_type": "video", 
-                    "data": yt_data
-                })
+                }   
 
+            ## YOUTUBE SHORT
             elif choice.lower() == "shorts":
-                print("TBD")
+                media_type = "short"                
+                page.wait_for_selector("ytd-video-renderer, ytd-reel-shelf-renderer")
+                first_short = page.locator('a[href*="/shorts/"]').nth(1)
+                if first_short.is_visible():
+                    first_short.click()
+                    page.wait_for_selector("h1.ytShortsVideoTitleViewModelShortsVideoTitle", timeout=5000)
+                    page.locator("h1.ytShortsVideoTitleViewModelShortsVideoTitle").first.click()
+
+                    page.wait_for_selector("h2.ytVideoTitleHeaderViewModelTitle", timeout=5000)
+                    title = page.locator("h2.ytVideoTitleHeaderViewModelTitle").text_content()
+                    panel = page.locator("#anchored-panel")
+                    channel = panel.locator("#channel-name").inner_text()
+                    views = panel.locator(".ytwFactoidRendererFactoid").nth(1).get_attribute("aria-label")
+                    likes = panel.locator(".ytwFactoidRendererFactoid").first.get_attribute("aria-label")
+                    upload_date = panel.locator(".ytwFactoidRendererFactoid").nth(2).get_attribute("aria-label")
+                    desc = panel.locator("#snippet-text").text_content()
+
+                    yt_data = {
+                        "title": title,
+                        "channel": channel,
+                        "views": views,
+                        "likes": likes,
+                        "upload_date": upload_date,
+                        "description": desc
+                    }
+                else:
+                    print("No shorts available for this search query")
+                    yt_data = "N/A"
+            
+            search_data.append({
+                                "id": search_id, 
+                                "media": "YouTube", 
+                                "search_type": media_type, 
+                                "data": yt_data
+                            })
             
             input("Press enter to continue")
         
@@ -79,8 +112,8 @@ def scrape_website(url):
                     page.get_by_role("button", name="Go to Post").click()
                     
                     #TODO: collect reel data for json input
-                    #reel_data= {}
-                    search_data.append({"id": search_id, "media": "Instagram", "search_type": "reel", "data": "Example"}) #replace example with reel_data
+                    reel_data= "N/A"
+                    search_data.append({"id": search_id, "media": "Instagram", "search_type": "reel", "data": reel_data}) #replace example with reel_data
                     search_id += 1
                     page.go_back()
 
@@ -93,8 +126,8 @@ def scrape_website(url):
                 page.pause()
                 
                 #TODO: collect creator data for json input
-                #creator_data = {}
-                search_data.append({"id": search_id, "media": "Instagram", "search_type": "creator", "data": "Example"}) #replace example with creator_data
+                creator_data = "N/A"
+                search_data.append({"id": search_id, "media": "Instagram", "search_type": "creator", "data": creator_data}) #replace example with creator_data
                 search_id += 1
 
             else:
