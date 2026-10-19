@@ -7,6 +7,8 @@ const apiKey = process.env.YOUTUBE_API_KEY;
 export async function GET(request: NextRequest) {
     const searchParams = request.nextUrl.searchParams;
     const query = searchParams.get("q");
+    const after = searchParams.get("publishedAfter");
+    const before = searchParams.get("publishedBefore");
     const amountRequested = 50; //This can be changed later or changed dynamically later with the user request if needed.
 
     if (!query) {
@@ -16,11 +18,35 @@ export async function GET(request: NextRequest) {
         );
     }
 
+    if (after && isNaN(Date.parse(after))) {
+        return NextResponse.json(
+            { error: "Invalid publishedAfter date"},
+            { status: 400 }
+        );
+    }
+
+    if (before && isNaN(Date.parse(before))) {
+        return NextResponse.json(
+            { error: "Invalid publishedBefore date"},
+            { status: 400 }
+        );
+    }
+
+    const params = new URLSearchParams({
+        part: "snippet",
+        q: query,
+        type: "video",
+        videoDuration: "short",
+        maxResults: String(amountRequested),
+        key: apiKey ?? "",
+    });
+
+    if (after) params.set("publishedAfter", new Date(after).toISOString());
+    if (before) params.set("publishedBefore", new Date(before).toISOString());
+
     try {
         const searchResponse = await fetch(
-            `https://www.googleapis.com/youtube/v3/search?part=snippet&q=${encodeURIComponent(
-                query
-            )}&type=video&videoDuration=short&maxResults=${amountRequested}&key=${apiKey}`
+            `https://www.googleapis.com/youtube/v3/search?${params}`
         );
 
         const searchData = await searchResponse.json();
@@ -40,16 +66,14 @@ export async function GET(request: NextRequest) {
             allVideos.videos.push(currentVideo);
 
 
-            //I commented this out so it does not constantly save videos during testing.
-            //Uncomment to save everytime there is a search request.
-            //await saveVideo(currentVideo);
+            
         }
 
         return NextResponse.json(allVideos);
-        
+
 
     } catch(error) {
-         console.error(error);
+        console.error(error);
 
         return NextResponse.json(
             { error: "Failed to Fetch Youtube Video"},
@@ -79,5 +103,5 @@ async function formatVideoData(id: string) {
         comments: video.statistics?.commentCount ?? null
     };
 
-        return videoFormatted;
+    return videoFormatted;
 }
