@@ -3,7 +3,8 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import VideoCard, { type Video } from "./components/VideoCard";
+import VideoCard from "./components/VideoCard";
+import type { Video } from "@/types/video";
 
 export default function Home() {
   const [search, setSearch] = useState("");
@@ -48,14 +49,14 @@ export default function Home() {
 
       
   const sortedVideos = [...videos].sort((a, b) => {
-    const viewsA = Number(a.views ?? 0);
-    const viewsB = Number(b.views ?? 0);
+    const viewsA = getStatistic(a.views);
+    const viewsB = getStatistic(b.views);
 
-    const likesA = Number(a.likes ?? 0);
-    const likesB = Number(b.likes ?? 0);
+    const likesA = getStatistic(a.likes);
+    const likesB = getStatistic(b.likes);
 
-    const commentsA = Number(a.comments ?? 0);
-    const commentsB = Number(b.comments ?? 0);
+    const commentsA = getStatistic(a.comments);
+    const commentsB = getStatistic(b.comments);
 
     switch (sortBy) {
       case "views-desc":
@@ -219,4 +220,14 @@ export default function Home() {
       </div>
     </main>
   );
+}
+
+function getStatistic(value: string | null | undefined): number {
+  if (value == null || value.trim() === "") {
+    return 0;
+  }
+
+  const number = Number(value);
+
+  return Number.isFinite(number) ? number : 0;
 }
