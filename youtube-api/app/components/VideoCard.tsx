@@ -1,3 +1,4 @@
+import Link from "next/link";
 import type { Video } from "@/types/video";
 
 type VideoCardProps = {
@@ -65,6 +66,13 @@ export default function VideoCard({ video }: VideoCardProps) {
         >
           Watch on YouTube
         </a>
+
+        <Link
+          href={`/analyze?v=${video.id}`}
+          className="mt-3 block rounded-xl border-2 border-red-600 px-4 py-3 text-center font-semibold text-red-600 transition hover:bg-red-50"
+        >
+          Analyze Short
+        </Link>
       </div>
     </article>
   );

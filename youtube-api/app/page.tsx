@@ -1,6 +1,7 @@
 
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 import VideoCard from "./components/VideoCard";
 import type { Video } from "@/types/video";
@@ -108,6 +109,13 @@ export default function Home() {
           <p className="mt-3 text-gray-600">
             Search YouTube videos and explore their statistics.
           </p>
+
+          <Link
+            href="/analyze"
+            className="mt-3 inline-block font-medium text-red-600 hover:text-red-700"
+          >
+            Analyze a YouTube Short with AI →
+          </Link>
         </header>
 
         {/* Search Form */}
