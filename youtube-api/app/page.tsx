@@ -1,4 +1,3 @@
-
 "use client";
 
 import Link from "next/link";
@@ -13,6 +12,8 @@ export default function Home() {
   const [error, setError] = useState("");
   const [hasSearched, setHasSearched] = useState(false);
   const [sortBy, setSortBy] = useState("default");
+  const [videoDuration, setVideoDuration] = useState("any");
+  const [videoDefinition, setVideoDefinition] = useState("any");
 
   async function searchYouTube() {
     if (!search.trim()) return;
@@ -23,9 +24,13 @@ export default function Home() {
     setHasSearched(true);
 
     try {
-      const response = await fetch(
-        `/api/youtube?q=${encodeURIComponent(search)}`
-      );
+      const params = new URLSearchParams({
+        q: search,
+        videoDuration: videoDuration,
+        videoDefinition: videoDefinition,
+      });
+
+      const response = await fetch(`/api/youtube?${params}`);
 
       const data = await response.json();
 
@@ -124,23 +129,71 @@ export default function Home() {
             e.preventDefault();
             searchYouTube();
           }}
-          className="mx-auto mb-10 flex max-w-2xl gap-3"
+          className="mx-auto mb-10 max-w-2xl"
         >
-          <input
-            type="text"
-            placeholder="Search YouTube videos..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="w-full rounded-xl border-2 border-gray-300 bg-white px-5 py-3 text-gray-900 shadow-sm outline-none transition focus:border-red-500 focus:ring-2 focus:ring-red-200"
-          />
+          <div className="flex gap-3">
+            <input
+              type="text"
+              placeholder="Search YouTube videos..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="w-full rounded-xl border-2 border-gray-300 bg-white px-5 py-3 text-gray-900 shadow-sm outline-none transition focus:border-red-500 focus:ring-2 focus:ring-red-200"
+            />
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="rounded-xl bg-red-600 px-8 py-3 font-semibold text-white shadow-md transition hover:bg-red-700 disabled:opacity-50"
-          >
-            {loading ? "Searching..." : "Search"}
-          </button>
+            <button
+              type="submit"
+              disabled={loading}
+              className="rounded-xl bg-red-600 px-8 py-3 font-semibold text-white shadow-md transition hover:bg-red-700 disabled:opacity-50"
+            >
+              {loading ? "Searching..." : "Search"}
+            </button>
+          </div>
+
+          {/* Search Filters */}
+          <div className="mt-4 flex flex-wrap items-center justify-center gap-6">
+
+            <div className="flex items-center gap-2">
+              <label
+                htmlFor="duration"
+                className="font-medium text-gray-700"
+              >
+                Duration:
+              </label>
+
+              <select
+                id="duration"
+                value={videoDuration}
+                onChange={(e) => setVideoDuration(e.target.value)}
+                className="rounded-lg border-2 border-gray-300 bg-white px-4 py-2 text-gray-900 shadow-sm outline-none focus:border-red-500"
+              >
+                <option value="any">Any length</option>
+                <option value="short">Short (under 4 min)</option>
+                <option value="medium">Medium (4 to 20 min)</option>
+                <option value="long">Long (over 20 min)</option>
+              </select>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <label
+                htmlFor="quality"
+                className="font-medium text-gray-700"
+              >
+                Quality:
+              </label>
+
+              <select
+                id="quality"
+                value={videoDefinition}
+                onChange={(e) => setVideoDefinition(e.target.value)}
+                className="rounded-lg border-2 border-gray-300 bg-white px-4 py-2 text-gray-900 shadow-sm outline-none focus:border-red-500"
+              >
+                <option value="any">Any quality</option>
+                <option value="high">HD only</option>
+                <option value="standard">Standard only</option>
+              </select>
+            </div>
+
+          </div>
         </form>
 
         {error && (
